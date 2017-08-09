@@ -13,11 +13,31 @@
 		return setTimeout(inFunction(method,target,parameters),delay);
 	};
 
+    var getTouch = function(event, target) {
+        if (event.targetTouches) {
+            for (var i = 0; i < event.targetTouches.length; i++) {
+            	var touch = event.targetTouches[i];
+            	if (jQuery(target).closest(touch.target).length > 0 || jQuery(touch.target).closest(target).length > 0) {
+            		return touch;
+				}
+            }
+        }
+        if (event.changedTouches) {
+            for (var i = 0; i < event.changedTouches.length; i++) {
+                var touch = event.changedTouches[i];
+                if (jQuery(target).closest(touch.target).length > 0 || jQuery(touch.target).closest(target).length > 0) {
+                    return touch;
+                }
+            }
+        }
+        return event;
+    };
+
 	jQuery.graphics=document.createElement('canvas').getContext?'html5':jQuery.browser.msie?'vml':'svg';
 	jQuery.fn.unSlide=function(){
 		if(this.length>1){
 			return this.each(function(){
-				$(this).unSlide();
+				jQuery(this).unSlide();
 			});
 		}
 		if(this.length===0){
@@ -34,7 +54,7 @@
 	jQuery.fn.slide=function(option){
 		if(this.length>1){
 			return this.each(function(){
-				$(this).slide(option);
+				jQuery(this).slide(option);
 			});
 		}
 		if(this.length===0){
@@ -435,26 +455,51 @@
 		this.on('swiperight', inFunction(option.playPrev,option,['right']));
 		this.on('swipeleft', inFunction(option.playNext,option,['left']));
 		this.on('mousedown', function(event) {
-			$(this).data('location', {
+			jQuery(this).data('location', {
 				x: event.pageX,
 				y: event.pageY
-			})
+			});
 		});
 		this.on('mouseup', function(event) {
-			var location = $(this).data('location');
+			var location = jQuery(this).data('location');
 			if (location) {
 				var x = event.pageX - location.x;
 				var y = event.pageY - location.y;
-				if (Math.abs(x) > Math.abs(y)) {
+				if (Math.abs(x) > Math.abs(y) && Math.abs(x) > 5) {
 					if (x > 0) {
-	                    $(this).trigger('swiperight');
+	                    jQuery(this).trigger('swiperight');
 					} else {
-	                    $(this).trigger('swipeleft');
+	                    jQuery(this).trigger('swipeleft');
 					}
 				}
-	            $(this).data('location', 0);
+	            jQuery(this).data('location', 0);
 			}
 		});
+        if (!jQuery.mobile) {
+            this.on('touchstart', function(event) {
+                var touch = getTouch(event, this);
+                jQuery(this).data('location', {
+                    x: touch.pageX,
+                    y: touch.pageY
+                });
+            });
+            this.on('touchend', function(event) {
+                var location = jQuery(this).data('location');
+                if (location) {
+                	var touch = getTouch(event, this);
+                    var x = touch.pageX - location.x;
+                    var y = touch.pageY - location.y;
+                    if (Math.abs(x) > Math.abs(y) && Math.abs(x) > 5) {
+                        if (x > 0) {
+                            jQuery(this).trigger('swiperight');
+                        } else {
+                            jQuery(this).trigger('swipeleft');
+                        }
+                    }
+                    jQuery(this).data('location', 0);
+                }
+            });
+        }
 		if(option.hoverStop){
 			this.on('mouseenter mousemove', inFunction(option.pause,option));
 			this.on('mouseleave', inFunction(option.resume,option));
