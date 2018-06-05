@@ -14,23 +14,25 @@
     };
 
     var getTouch = function(event, target) {
-        if (event.targetTouches) {
-            for (var i = 0; i < event.targetTouches.length; i++) {
-                var touch = event.targetTouches[i];
+    	var targetTouches = event.targetTouches || event.originalEvent && event.originalEvent.targetTouches;
+        if (targetTouches) {
+            for (var i = 0; i < targetTouches.length; i++) {
+                var touch = targetTouches[i];
                 if (jQuery(target).closest(touch.target).length > 0 || jQuery(touch.target).closest(target).length > 0) {
                     return touch;
                 }
             }
         }
-        if (event.changedTouches) {
-            for (var i = 0; i < event.changedTouches.length; i++) {
-                var touch = event.changedTouches[i];
+        var changedTouches = event.changedTouches || event.originalEvent && event.originalEvent.changedTouches
+        if (changedTouches) {
+            for (var i = 0; i < changedTouches.length; i++) {
+                var touch = changedTouches[i];
                 if (jQuery(target).closest(touch.target).length > 0 || jQuery(touch.target).closest(target).length > 0) {
                     return touch;
                 }
             }
         }
-        return event;
+        return event.originalEvent || event;
     };
 
     jQuery.graphics=document.createElement('canvas').getContext?'html5':jQuery.browser.msie?'vml':'svg';
@@ -70,6 +72,8 @@
         this.data('slide',true);
         this.data('slideOption',option);
         this.data('slideElement',this.clone());
+        this.on('dragstart', function() { return false; });
+        this.on('selectstart', function() { return false; });
         //create player
         option.target=this;
         option.list=this.children().css({
