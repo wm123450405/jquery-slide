@@ -372,9 +372,11 @@
                     position:'absolute',
                     overflow:'hidden',
                     width:option.page.width,
-                    height:option.page.height,
+                    height:option.page.width,
                     zIndex:1
-                }).attr('width',option.page.width).attr('height',option.page.height).addClass('background__').appendTo(pageItem)
+                }).attr('width',jQuery.graphics==='html5'?option.page.width*(window.devicePixelRatio||1):option.page.width)
+                    .attr('height',jQuery.graphics==='html5'?option.page.height*(window.devicePixelRatio||1):option.page.width)
+                    .addClass('background__').appendTo(pageItem)
                     .draw(option.page.shape,option.page.width,option.page.height,
                         option.page.bgcolor,option.page.borderWidth,option.page.borderColor);
                 /*
@@ -746,6 +748,9 @@
     jQuery.fn.draw=function(shape,width,height,bgcolor,borderWidth,borderColor){
         if(jQuery.graphics==='html5'){
             var context=this.get(0).getContext('2d');
+            width*=window.devicePixelRatio||1;
+            height*=window.devicePixelRatio||1;
+            borderWidth*=window.devicePixelRatio||1;
             context.clearRect(0,0,width,height);
             if(shape==='rect'){
                 if(bgcolor){
